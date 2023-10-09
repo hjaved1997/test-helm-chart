@@ -1,0 +1,22 @@
+#namespace#
+NamespaceName: helm-test-namespace
+AppName: helm-test-app
+NamespaceEnvironment: test
+
+#netowrk policy#
+EgressAppName: helm-test-egressApp
+IngressServicePort: 8080
+AllowNamespaceName: helm-test-namespace
+
+#deployment#
+DeploymentName: helm-test-deployment
+ContainerName: helm-test-container
+CpuRequests: 100m
+MemoryRequests: 128Mi
+MemoryLimits: 256Mi
+
+#service#
+ServiceName: helm-test-service
+ServicePort: 80
+TargetPort: 8080
+

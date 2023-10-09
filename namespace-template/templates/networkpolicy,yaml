@@ -1,0 +1,200 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-allow-namespace-internal
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.NamespaceName }}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.NamespaceName }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-kube-dns
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-ldap
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            app: ldap
+      ports:
+      - port: 80
+#     - port: 8080              
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-ingress-service
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 80
+#       - port: 90
+#       - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-netcompany-api
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+          except:
+          - 10.0.0.0/8
+          - 172.16.0.0/12
+          - 192.168.0.0/16
+      ports:
+        - port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-{{ .Values.EgressAppName }}
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            app: {{ .Values.EgressAppName }}
+      ports:
+      - port: 80
+#     - port: 6379    for redis
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-internet
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+          except:
+          - 10.0.0.0/8
+          - 172.16.0.0/12
+          - 192.168.0.0/16
+      ports:
+        - port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-production
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.68.4.58/32
+      ports:
+        - port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-database
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.68.0.119/32
+      ports:
+        - port: 1433
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-egress-database-qa
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.68.4.60/32
+      ports:
+        - port: 1499
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.NamespaceName }}-ingress-service-allow-minside
+  namespace: {{ .Values.NamespaceName }}
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              namespace: {{ .Values.AllowNamespaceName }}
+      ports:
+        - port: 443
+        - port: 80
+---

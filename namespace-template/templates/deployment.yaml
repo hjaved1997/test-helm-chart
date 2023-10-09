@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.DeploymentName }}
+  namespace: tip
+  labels:
+    app: {{ .Values.AppName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.AppName }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.AppName }}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: {{ .Values.DeploymentName }}
+          image: rcconserakscr.azurecr.io/{{ .Values.ContainerName }}:1.1.0
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: {{ .Values.CpuRequests }}
+              memory: {{ .Values.MemoryRequests }}
+            limits:
+              memory: {{ .Values.MemoryLimits }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: TIP_ENCRYPTION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: {{ .Values.DeploymentName }}-tip-encryption-password
+                  name: {{ .Values.DeploymentName }}-secrets
+            - name: TZ
+              value: "Europe/Oslo"
+              
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.ServiceName }}
+  namespace: tip
+spec:
+  selector:
+    app: {{ .Values.AppName }}
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.ServicePort }}
+      targetPort: {{ .Values.TargetPort }}
+---
